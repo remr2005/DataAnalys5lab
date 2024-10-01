@@ -1,4 +1,6 @@
 from random import randint
+from numpy.linalg import solve as gauss
+import numpy as np
 
 # стоит ли идти на пару
 # практика(1) или лекция(0)/ профильный ли предмет(1) или нет(0/ обязательны конспекты(1) или нет(0/ хочется ли кушать(1) или нет(0)/третья+ пара(1) или нет(0)?/
@@ -18,9 +20,32 @@ def make_data() -> list:
         data.append(arr)
     return data
 
+def dot(v,w):
+    return sum(v_i * w_i for v_i, w_i in zip(v,w))
+
+def regression(X,y): # X – это список m штук векторов
+    n = len(y)
+    M = []
+    b = []
+    M.append([sum(x) for x in X]+[n])
+    b.append(sum(y))
+    for _,xl in enumerate(X):
+        M.append([dot(x,xl) for x in X]+[sum(xl)])
+        b.append(dot(y,xl))
+    beta = gauss(np.array(M,dtype="float64"),np.array(b,dtype="float64"))
+    return beta # свободный – в конце, т.е. beta[-1]есть alpha
+
 def main():
     data= [[1, 1, 0, 1, 0, 0, 3, 1], [1, 0, 1, 1, 1, 0, 5, 1], [1, 1, 1, 0, 0, 0, 3, 1], [1, 1, 0, 1, 1, 0, 4, 1], [1, 1, 1, 0, 1, 0, 4, 1], [0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 1, 0, 1, 5, 1], [0, 1, 0, 0, 0, 0, 3, 0], [1, 0, 0, 0, 1, 0, 2, 0], [0, 1, 0, 0, 1, 1, 3, 1], [1, 0, 1, 1, 1, 1, 4, 1], [0, 1, 0, 1, 0, 0, 5, 0], [1, 1, 1, 1, 1, 0, 1, 0], [0, 0, 0, 1, 0, 0, 2, 0], [0, 1, 0, 1, 1, 0, 2, 0], [1, 1, 0, 1, 0, 1, 1, 1], [0, 0, 0, 1, 0, 1, 5, 1], [1, 0, 0, 0, 1, 1, 3, 1], [1, 0, 1, 0, 0, 0, 4, 1], [0, 1, 1, 1, 1, 0, 1, 0], [0, 0, 0, 0, 1, 0, 5, 1], [0, 1, 1, 0, 1, 1, 4, 1], [1, 1, 1, 1, 1, 1, 5, 1], [0, 1, 0, 0, 0, 1, 1, 0], [0, 1, 1, 1, 1, 1, 5, 1], [0, 1, 0, 1, 0, 1, 3, 1], [0, 1, 1, 0, 0, 1, 4, 1], [0, 0, 1, 0, 0, 0, 1, 0], [1, 0, 1, 1, 0, 1, 3, 1], [0, 0, 0, 0, 0, 0, 5, 1]]
-    print(data)
+    X = [[],[],[],[],[],[],[]]
+    y = []
+    for i in range(len(data[:-2])):
+        for j in range(7):
+            X[j].append(data[i][j])
+        y.append(data[i][-1])
+    beta = regression(X,y)
+    print(sum(beta*data[-3]))
+    
 
 if __name__ == "__main__":
     main()
