@@ -2,7 +2,7 @@ from random import randint
 from numpy.linalg import solve as gauss
 import numpy as np
 from math import exp
-from dsmltf import scale, mult_r_squared, mult_predict, dot
+from dsmltf import scale, mult_predict, dot, f1_score
 
 # стоит ли идти на пару
 # практика(1) или лекция(0)/ профильный ли предмет(1) или нет(0/ обязательны конспекты(1) или нет(0/ хочется ли кушать(1) или нет(0)/третья+ пара(1) или нет(0)?/
@@ -39,25 +39,34 @@ def main():
     data= [[1, 1, 0, 1, 0, 0, 3, 1], [1, 0, 1, 1, 1, 0, 5, 1], [1, 1, 1, 0, 0, 0, 3, 1], [1, 1, 0, 1, 1, 0, 4, 1], [1, 1, 1, 0, 1, 0, 4, 1], [0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 1, 0, 1, 5, 1], [0, 1, 0, 0, 0, 0, 3, 0], [1, 0, 0, 0, 1, 0, 2, 0], [0, 1, 0, 0, 1, 1, 3, 1], [1, 0, 1, 1, 1, 1, 4, 1], [0, 1, 0, 1, 0, 0, 5, 0], [1, 1, 1, 1, 1, 0, 1, 0], [0, 0, 0, 1, 0, 0, 2, 0], [0, 1, 0, 1, 1, 0, 2, 0], [1, 1, 0, 1, 0, 1, 1, 1], [0, 0, 0, 1, 0, 1, 5, 1], [1, 0, 0, 0, 1, 1, 3, 1], [1, 0, 1, 0, 0, 0, 4, 1], [0, 1, 1, 1, 1, 0, 1, 0], [0, 0, 0, 0, 1, 0, 5, 0], [0, 1, 1, 0, 1, 1, 4, 1], [1, 1, 1, 1, 1, 1, 5, 1], [0, 1, 0, 0, 0, 1, 1, 0], [0, 1, 1, 1, 1, 1, 5, 1], [0, 1, 0, 1, 0, 1, 3, 1], [0, 1, 1, 0, 0, 1, 4, 1], [0, 0, 1, 0, 0, 0, 1, 0], [1, 0, 1, 1, 0, 1, 3, 1], [0, 0, 0, 0, 0, 0, 5, 0]]
     # Будем переводжить их в нужный формат
     X = [[],[],[],[],[],[],[]]
-    y = []
+    y = [i[-1] for i in data[:-10]]
+    for i in range(len(y)):
+        if y[i]==1:y[i]=0.95
+        else:y[i]=0.05
     # Но сначала прошкалируем
-    dat = scale(data)
+    dat = scale([i[:-1] for i in data])
     # Переводим в нужный вид, что бы передать в функцию
     for i in range(len(dat[:-10])):
         for j in range(7):
             X[j].append(dat[i][j])
-        y.append(dat[i][-1])
-    # Вычисляем коофициенты
+    # Вычисляем коэфициенты
     beta = regression(X,y)
-    # Вычисляем ошибку по квадратам
-    R = mult_r_squared([i[:-1] for i in dat[-10:]], y, beta)
     # Проводим тест на тестовой выборке
+    true_pos, false_pos, false_neg, true_neg = 0, 0, 0, 0
     for i in range(20,30):
         Y = mult_predict(dat[i][:-1],beta)
         answer = round(exp(Y)/(1+exp(Y)))
-        if data[i][-1]!=answer:
+        cor_answer = data[i][-1]
+        if cor_answer!=answer:
             print(f"Ошибка предсказания, должно быть {data[i][-1]}, а получилось {answer}, data:{data[i]}")
-    print(f"Ошибка по квадратам {R}")
+        match answer,cor_answer:
+            case 1,1:true_pos+=1
+            case 1,0:false_pos+=1
+            case 0,1:false_neg+=1
+            case 0,0:true_neg+=1
+    print(true_pos,false_pos,true_neg,false_neg)
+    print(f1_score(true_pos, false_pos, false_neg))
+
 
 if __name__ == "__main__":
     main()
